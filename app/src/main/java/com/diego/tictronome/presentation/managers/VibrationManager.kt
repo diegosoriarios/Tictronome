@@ -29,7 +29,6 @@ class VibrationManager(context: Context) {
         //MAYBE PLAY A TONE?
         //val toneGen1 = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
         //toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 150)
-        Log.d("AQUI", "TESTE")
     }
 
     fun stop() {
