@@ -25,9 +25,12 @@ jobs:
         env:
           ENCODED_STRING: ${{ secrets.KEYSTORE }}
         run: |
-          TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}/keystore"
-          mkdir -p "${TMP_KEYSTORE_FILE_PATH}"
-          echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}/your_keystore.jks"
+          mkdir -p app/keystore
+          echo $ENCODED_STRING | base64 -di > app/keystore/your_keystore.jks
+          echo app/keystore/your_keystore.jks
+
+      - name: Set keystore file permissions
+        run: chmod 600 app/keystore/your_keystore.jks
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -39,8 +42,8 @@ jobs:
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
 
-      - name: Build gradle project
-        run: ./gradlew clean build
+      - name: Clean Gradle Build
+        run: ./gradlew clean
 
       - name: Build APK release project (APK) - ${{ env.main_project_module }} module
         run: ./gradlew :${{ env.main_project_module }}:bundleRelease
