@@ -1,4 +1,4 @@
-name: Generate APK AAB (Upload - Create Artifact to Github Action)
+name: Generate APK (Upload - Create Artifact to Github Action)
 env:
   main_project_module: app
 
@@ -27,7 +27,6 @@ jobs:
         run: |
           mkdir -p app/keystore
           echo $ENCODED_STRING | base64 -di > app/keystore/your_keystore.jks
-          echo app/keystore/your_keystore.jks
 
       - name: Set keystore file permissions
         run: chmod 600 app/keystore/your_keystore.jks
@@ -46,10 +45,13 @@ jobs:
         run: ./gradlew clean
 
       - name: Build APK release project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew :${{ env.main_project_module }}:bundleRelease
+        run: ./gradlew :${{ env.main_project_module }}:assembleRelease
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+
+      - name: Verify APK existence
+        run: test -f app/build/outputs/apk/release/app-release.apk
 
       - name: Upload APK to Github Artifact
         uses: actions/upload-artifact@v4
