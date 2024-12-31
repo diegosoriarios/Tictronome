@@ -38,8 +38,30 @@ jobs:
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
         run: ./gradlew assemble
       
-      - name: Upload APK Release - ${{ env.repository_name }}
-        uses: actions/upload-artifact@v4
+      - name: Upload APK to Github Artifacts
+        uses: actions/upload-artifacts@v1
         with:
-          name: ${{ env.date_today }} - ${{ env.playstore_name }} - ${{ env.repository_name }} - APK(s) release generated
-          path: ${{ env.main_project_module }}/build/outputs/apk/release/
+          name: app
+          path: apk/release/app-release.apk
+      
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
+        with:
+          tag_name: new_release
+          release_name: Release
+          draft: false
+          prerelease: false
+
+      - name: Upload APK To Release
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./apk/release/app-release.apk
+          asset_name: app.apk
+          asset_content_type: application/zip
