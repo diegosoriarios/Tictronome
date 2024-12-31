@@ -50,8 +50,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.event.repository.updated_at }}
+          release_name: Release ${{ github.event.repository.updated_at }}
           draft: false
           prerelease: false
 
