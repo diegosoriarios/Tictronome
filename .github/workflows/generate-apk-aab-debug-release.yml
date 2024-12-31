@@ -39,7 +39,7 @@ jobs:
         run: ./gradlew assemble
       
       - name: Upload APK to Github Artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: app
           path: apk/release/app-release.apk
