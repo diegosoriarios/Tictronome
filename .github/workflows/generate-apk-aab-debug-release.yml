@@ -38,8 +38,8 @@ jobs:
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
         run: ./gradlew assemble
       
-      - name: Upload APK to Github Artifacts
-        uses: actions/upload-artifacts@v1
+      - name: Upload APK to Github Artifact
+        uses: actions/upload-artifact@v1
         with:
           name: app
           path: apk/release/app-release.apk
