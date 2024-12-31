@@ -23,11 +23,13 @@ jobs:
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
       - name: Decode Keystore
-        id: decode_keystore
-        uses: timheuer/base64-to-file@v1
-        with:
-          fileName: 'keystore/your_keystore.jks'
-          encodedString: ${{ secrets.KEYSTORE }}
+        env:
+          ENCODED_STRING: ${{ secrets.KEYSTORE }}
+        run: |
+          TMP_KEYSTORE_FILE_PATH="${RUNNER_TEMP}"/keystore
+          mkdir "${TMP_KEYSTORE_FILE_PATH}"
+          echo $ENCODED_STRING | base64 -di > "${TMP_KEYSTORE_FILE_PATH}"/your_keystore.jks
+
       
       - name: Set up JDK
         uses: actions/setup-java@v4
