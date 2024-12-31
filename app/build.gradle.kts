@@ -26,7 +26,7 @@ android {
 
             if (allFilesFromDir != null) {
                 var keystoreFile = allFilesFromDir.first()
-                //keystoreFile.renameTo("keystore/your_keystore.jks")
+                keystoreFile.renameTo(File("keystore/your_keystore.jks"))
             }
 
             storeFile = file("keystore/your_keystore.jks")
