@@ -19,6 +19,23 @@ android {
 
     }
 
+    signingConfigs {
+        create("release") {
+            var tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
+            var allFilesFromDir = File(tmpFilePath).listFiles()
+
+            if (allFilesFromDir != null) {
+                var keystoreFile = allFilesFromDir.first()
+                //keystoreFile.renameTo("keystore/your_keystore.jks")
+            }
+
+            storeFile = file("keystore/your_keystore.jks")
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias = "tictronome"
+            keyPassword = System.getenv("SIGNING_STORE_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -26,6 +43,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

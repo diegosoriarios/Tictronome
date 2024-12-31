@@ -21,6 +21,13 @@ jobs:
       # Set Repository Name As Env Variable
       - name: Set repository name as env variable
         run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1
+        with:
+          fileName: 'keystore/your_signing_keystore.jks'
+          encodedString: ${{ secrets.KEYSTORE }}
       
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -36,13 +43,16 @@ jobs:
         run: ./gradlew build
 
       - name: Build apk release project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew assemble
+        run: ./gradlew app:bundleRelease
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
       
       - name: Upload APK to Github Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: app/release/app-release.apk
+          path: app/build/outputs/app-release.apk
       
       - name: Create release
         id: create_release
@@ -62,6 +72,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app/release/app-release.apk
+          asset_path: ./app/build/outputs/app-release.apk
           asset_name: app.apk
           asset_content_type: application/zip
