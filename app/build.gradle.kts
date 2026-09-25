@@ -21,18 +21,14 @@ android {
 
     signingConfigs {
         create("release") {
-            var tmpFilePath = System.getProperty("user.home") + "/work/_temp/keystore/"
-            var allFilesFromDir = File(tmpFilePath).listFiles()
-
-            if (allFilesFromDir != null) {
-                var keystoreFile = allFilesFromDir.first()
-                keystoreFile.renameTo(File("keystore/your_keystore.jks"))
+            val storeFilePath = System.getenv("SIGNING_STORE_FILE") ?: "keystore/your_keystore.jks"
+            val storePasswordEnv = System.getenv("SIGNING_STORE_PASSWORD")
+            if (storePasswordEnv != null && file(storeFilePath).exists()) {
+                storeFile = file(storeFilePath)
+                storePassword = storePasswordEnv
+                keyAlias = System.getenv("SIGNING_KEY_ALIAS") ?: "tictronome"
+                keyPassword = System.getenv("SIGNING_KEY_PASSWORD") ?: storePasswordEnv
             }
-
-            storeFile = file("keystore/your_keystore.jks")
-            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias = "tictronome"
-            keyPassword = System.getenv("SIGNING_STORE_PASSWORD")
         }
     }
 
@@ -43,7 +39,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            val releaseSigning = signingConfigs.getByName("release")
+            signingConfig = if (releaseSigning.storeFile != null) {
+                releaseSigning
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
     compileOptions {
