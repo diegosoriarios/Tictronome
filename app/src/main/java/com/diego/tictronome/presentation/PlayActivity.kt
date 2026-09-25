@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.diego.tictronome.R
 import com.diego.tictronome.presentation.components.ImageButton
 import com.diego.tictronome.presentation.managers.VibrationManager
-import com.diego.tictronome.presentation.ui.theme.TictronomeTheme
+import com.diego.tictronome.presentation.theme.TictronomeTheme
 
 private const val MILLIS_PER_MINUTE = 60000L
 
