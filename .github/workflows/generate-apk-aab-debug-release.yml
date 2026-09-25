@@ -1,4 +1,4 @@
-name: Generate APK (Upload - Create Artifact to Github Action)
+name: Generate APK & AAB Release
 env:
   main_project_module: app
 
@@ -7,6 +7,9 @@ on:
     branches:
       - 'release/**'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -18,15 +21,12 @@ jobs:
       - name: Set current date as env variable
         run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-      - name: Set repository name as env variable
-        run: echo "repository_name=$(echo '${{ github.repository }}' | awk -F '/' '{print $2}')" >> $GITHUB_ENV
-
       - name: Decode Keystore
         env:
           ENCODED_STRING: ${{ secrets.KEYSTORE }}
         run: |
           mkdir -p app/keystore
-          echo $ENCODED_STRING | base64 -di > app/keystore/your_keystore.jks
+          echo "$ENCODED_STRING" | base64 -di > app/keystore/your_keystore.jks
 
       - name: Set keystore file permissions
         run: chmod 600 app/keystore/your_keystore.jks
@@ -44,39 +44,36 @@ jobs:
       - name: Clean Gradle Build
         run: ./gradlew clean
 
-      - name: Build APK release project (APK) - ${{ env.main_project_module }} module
-        run: ./gradlew :${{ env.main_project_module }}:assembleRelease
+      - name: Build release APK and AAB - ${{ env.main_project_module }} module
+        run: |
+          ./gradlew :${{ env.main_project_module }}:assembleRelease
+          ./gradlew :${{ env.main_project_module }}:bundleRelease
         env:
+          SIGNING_STORE_FILE: keystore/your_keystore.jks
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
 
-      - name: Verify APK existence
-        run: test -f app/build/outputs/apk/release/app-release.apk
+      - name: Verify APK and AAB existence
+        run: |
+          test -f app/build/outputs/apk/release/app-release.apk
+          test -f app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload APK to Github Artifact
+      - name: Upload APK and AAB to Github Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app
-          path: app/build/outputs/apk/release/app-release.apk
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
+      - name: Create release and upload assets
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          name: Release ${{ github.run_number }}
           draft: false
           prerelease: false
-
-      - name: Upload APK To Release
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_RELEASE }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app/build/outputs/apk/release/app-release.apk
-          asset_name: app.apk
-          asset_content_type: application/vnd.android.package-archive
+          files: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
+          fail_on_unmatched_files: true
