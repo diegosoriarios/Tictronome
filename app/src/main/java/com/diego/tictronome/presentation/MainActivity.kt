@@ -9,7 +9,6 @@ package com.diego.tictronome.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -45,6 +44,12 @@ import com.diego.tictronome.R
 import com.diego.tictronome.presentation.components.ImageButton
 import com.diego.tictronome.presentation.theme.TictronomeTheme
 
+private const val MILLIS_PER_MINUTE = 60000L
+private const val DEFAULT_BPM = 100
+private const val BPM_STEP = 1
+private const val BUTTON_SPACING = 60
+private const val PADDING_VERTICAL = 12
+private const val PADDING_SMALL = 12
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,7 +95,10 @@ fun TapControllerScreen(navController: NavController, context: Context) {
 
     fun handleTap() {
         var temp = System.currentTimeMillis()
-        count = 60000 / (temp - delta)
+        val timeDiff = temp - delta
+        if (timeDiff > 0) {
+            count = MILLIS_PER_MINUTE / timeDiff
+        }
         delta = temp
     }
 
@@ -121,7 +129,7 @@ fun TapControllerScreen(navController: NavController, context: Context) {
 
 @Composable
 fun BpmControllerScreen(navController: NavController, context: Context) {
-    var bpm by remember { mutableStateOf(100) }
+    var bpm by remember { mutableStateOf(DEFAULT_BPM) }
 
     fun handleStart() {
         val intent = Intent(context, PlayActivity::class.java)
@@ -134,21 +142,21 @@ fun BpmControllerScreen(navController: NavController, context: Context) {
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ImageButton(icon = R.drawable.add, onClick = { bpm += 1 }, iconDescription = "Add")
+        ImageButton(icon = R.drawable.add, onClick = { bpm += BPM_STEP }, iconDescription = "Add")
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(Modifier.width(60.dp))
+            Spacer(Modifier.width(BUTTON_SPACING.dp))
             Text(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.primary,
                 text = "$bpm"
             )
-            ImageButton(icon = R.drawable.play, onClick = { handleStart() }, modifier = Modifier.padding(end = 12.dp), iconDescription = "Play")
+            ImageButton(icon = R.drawable.play, onClick = { handleStart() }, modifier = Modifier.padding(end = PADDING_SMALL.dp), iconDescription = "Play")
         }
-        ImageButton(icon = R.drawable.minus, onClick = { bpm -= 1 }, iconDescription = "Minus")
+        ImageButton(icon = R.drawable.minus, onClick = { bpm -= BPM_STEP }, iconDescription = "Minus")
     }
 }
 
@@ -156,7 +164,7 @@ fun BpmControllerScreen(navController: NavController, context: Context) {
 fun Greeting(navController: NavController) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
         Text(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = PADDING_VERTICAL.dp),
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.primary,
             text = "Tictronome"

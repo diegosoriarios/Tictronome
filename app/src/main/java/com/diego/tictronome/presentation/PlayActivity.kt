@@ -20,12 +20,12 @@ import com.diego.tictronome.presentation.components.ImageButton
 import com.diego.tictronome.presentation.managers.VibrationManager
 import com.diego.tictronome.presentation.ui.theme.TictronomeTheme
 
+private const val MILLIS_PER_MINUTE = 60000L
 
 class PlayActivity : ComponentActivity() {
     lateinit var vibrationManager: VibrationManager
     private lateinit var runnable: Runnable
-
-    val mainHandler = Handler(Looper.getMainLooper())
+    private val mainHandler = Handler(Looper.getMainLooper())
     fun play(bpm: Int) {
         if (bpm == 0) {
             vibrationManager.stop()
@@ -36,16 +36,28 @@ class PlayActivity : ComponentActivity() {
         runnable = object : Runnable {
             override fun run() {
                 vibrationManager.play()
-                mainHandler.postDelayed(this, ((60 * 1000) / bpm).toLong())
+                mainHandler.postDelayed(this, (MILLIS_PER_MINUTE / bpm).toLong())
             }
         }
 
         mainHandler.post(runnable)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::runnable.isInitialized) {
+            mainHandler.removeCallbacks(runnable)
+        }
+        if (::vibrationManager.isInitialized) {
+            vibrationManager.stop()
+        }
+    }
+
     override fun onStop() {
         super.onStop()
-        mainHandler.removeCallbacks(runnable)
+        if (::runnable.isInitialized) {
+            mainHandler.removeCallbacks(runnable)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
